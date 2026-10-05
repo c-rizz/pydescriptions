@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydescriptions"
+version = "0.0.1"
+authors = [
+  { name="Carlo Rizzardo", email="cr.git.mail@gmail.com" },
+]
+description = "Index of robot description packages, fetched on demand and resolved to paths"
+readme = "README.md"
+# tomllib is used to read the index, so 3.11 is the minimum.
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"pydescriptions" = ["index.toml"]

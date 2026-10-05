@@ -1,0 +1,33 @@
+# Index of robot-description repositories.
+#
+# Keyed by repository, because one repository ships several ROS packages and they must all come
+# from the same checkout. A package's subdirectory defaults to its own name; list exceptions in
+# `package_subdirs`.
+#
+# `commit` MUST be a full 40-character SHA, never a branch or tag: the cache is keyed by it, and a
+# moving ref would silently hand different machines different geometry.
+#
+# Repositories that are not listed here can be passed to resolve() through extra_repos=, so an
+# experiment can declare its own without editing this file.
+
+[repos.iit-kyon-ros-pkg]
+url = "git@github.com:ADVRHumanoids/iit-kyon-ros-pkg.git"
+commit = "6b98cb073c9444719f976cd39a899af4bf83d8ac"
+packages = ["kyon_cartesio", "kyon_config", "kyon_gazebo", "kyon_isaac",
+            "kyon_mujoco", "kyon_robot", "kyon_srdf", "kyon_urdf"]
+
+[repos.iit-dagana-ros-pkg]
+url = "git@github.com:c-rizz/iit-dagana-ros-pkg.git"
+commit = "969b9490562cf3c608251e14020c17ae17381afc"
+packages = ["dagana_gazebo", "dagana_urdf"]
+
+[repos.iit-centauro-ros-pkg]
+url = "git@github.com:ADVRHumanoids/iit-centauro-ros-pkg.git"
+commit = "86e9019ee0d0f465f1f2d972a16c0fafa260233c"
+packages = ["centauro_cartesio_config", "centauro_config", "centauro_gazebo",
+            "centauro_mujoco", "centauro_srdf", "centauro_test", "centauro_urdf"]
+
+[repos.zed-ros2-wrapper]
+url = "https://github.com/stereolabs/zed-ros2-wrapper.git"
+commit = "449eef9566a49461cc37d6ac13230fe2886ff2be"
+packages = ["zed_description"]
