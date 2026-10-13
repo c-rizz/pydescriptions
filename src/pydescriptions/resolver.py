@@ -19,6 +19,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import tomllib
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -115,8 +116,43 @@ def package_index() -> dict[str, RepoEntry]:
     return packages
 
 
+def _global_git_config() -> Path:
+    """A global git config for our own git calls, trusting the checkouts we create ourselves.
+
+    The checkouts often sit on a mount that reports a different owner than the process running git
+    (an sshfs workspace, or a container running as root), and git then refuses to work in them:
+    "detected dubious ownership in repository". ``safe.directory`` lifts that, but git only honours
+    it from a system or global config -- explicitly not from ``-c safe.directory=...`` -- so the only
+    way to set it programmatically is to point ``GIT_CONFIG_GLOBAL`` at a config of our own.
+
+    That would otherwise hide the user's real global config, which is where url rewrites and
+    credential helpers live and which private repositories need, so it is included first.
+
+    The scope of the exception is only this package's git subprocesses; git run anywhere else keeps
+    its ownership checks.
+    """
+    # One shared file per user rather than one per process: a few thousand workers must not leave a
+    # few thousand temporary files behind.
+    path = Path(tempfile.gettempdir())/f"pydescriptions-gitconfig-{os.getuid()}"
+    existing = os.environ.get("GIT_CONFIG_GLOBAL")
+    if existing:
+        candidates = [Path(existing)]
+    else:
+        xdg = os.environ.get("XDG_CONFIG_HOME")
+        base = Path(xdg).expanduser() if xdg else Path.home()/".config"
+        candidates = [base/"git"/"config", Path.home()/".gitconfig"]
+    content = "".join(f"[include]\n\tpath = {c}\n" for c in candidates if c.is_file())
+    content += "[safe]\n\tdirectory = *\n"
+    # Written atomically: every worker rewrites it, and a torn read would break all of them.
+    tmp = path.with_name(f"{path.name}.{os.getpid()}")
+    tmp.write_text(content)
+    os.replace(tmp, path)
+    return path
+
+
 def _git(args : list[str], cwd : Path | None = None) -> str:
-    done = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
+    env = dict(os.environ, GIT_CONFIG_GLOBAL=str(_global_git_config()))
+    done = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, env=env)
     if done.returncode != 0:
         # git's own message is the only useful part of a failure, so it has to reach the caller
         # rather than being hidden behind a bare exit status.
@@ -249,7 +285,7 @@ def resolve(*packages : str | Sequence[str],
     packages
         Package names, either as separate arguments or as a single sequence.
     root
-        Workspace directory holding one editable clone per repository. None uses the cache.
+        Workspace directory holding one editable clone per repository. None uses a cache instead.
     refs
         Per-repository branch/tag/sha to clone when a checkout is missing, overriding the index's
         pinned commit. Only valid together with ``root``, since the cache is keyed by commit.

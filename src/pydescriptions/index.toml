@@ -27,7 +27,9 @@ commit = "86e9019ee0d0f465f1f2d972a16c0fafa260233c"
 packages = ["centauro_cartesio_config", "centauro_config", "centauro_gazebo",
             "centauro_mujoco", "centauro_srdf", "centauro_test", "centauro_urdf"]
 
-[repos.zed-ros2-wrapper]
-url = "https://github.com/stereolabs/zed-ros2-wrapper.git"
-commit = "449eef9566a49461cc37d6ac13230fe2886ff2be"
+[repos.zed-ros2-description]
+url = "https://github.com/stereolabs/zed-ros2-description.git"
+commit = "449eef9566a49461cc37d6ac13230fe2886ff2be"   # tag 0.1.5
 packages = ["zed_description"]
+# The repository *is* the package: package.xml sits at its root, not in a subdirectory.
+package_subdirs = { zed_description = "." }
