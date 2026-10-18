@@ -1,18 +1,47 @@
 # pydescriptions
 
-An index of robot-description repositories. Instead of one wrapper package per description, this
-package holds a list of repositories with a pinned commit for each, clones them on demand, and
-resolves ROS package names to filesystem paths.
+An index of robot-description repositories. This package holds a list of repositories 
+with a pinned commit for each, clones them on demand, and resolves ROS package names 
+to filesystem paths.
 
-It is used programmatically; there is no CLI. The result is shaped for the xacro compiler, which
+It does not require heavy dependencies and is pip-installable.
+For xacro compilation you can use (xacro_standalone)[https://github.com/c-rizz/xacro_standalone/tree/extra_find_pkg_path] and the wrapper provided by (ADARL)[https://github.com/c-rizz/adarl].
+
+It is used programmatically; there is no CLI. The result is shaped for the ADARL xacro compiler, which
 takes a `package name -> path` dict:
 
 ```python
 from pydescriptions import resolve
 from adarl.utils.base_utils import compile_xacro_string
+from pathlib import Path
 
-extra = resolve("kyon_urdf", "dagana_urdf")
-urdf  = compile_xacro_string(xacro_string, extra_pkg_paths=extra)
+# GETTING KYON URDF
+
+descriptions = resolve("kyon_urdf","zed_description")
+kyon_xacro_string = Path(descriptions["kyon_urdf"]+"/urdf/kyon.urdf.xacro").read_text()
+kyon_urdf_string = compile_xacro_string(model_definition_string=xacro_string,
+                                   model_kwargs={"camera_front_down":"true"},
+                                   extra_pkg_paths=descriptions)
+
+# GETTING CENTAURO URDF
+
+descriptions = resolve("centauro_urdf","dagana_urdf")
+centauro_xacro_string = Path(descriptions["centauro_urdf"]+"/urdf/centauro.urdf.xacro").read_text()
+centauro_urdf_string = compile_xacro_string(model_definition_string=xacro_string,
+                                            model_kwargs={
+                                                "realsense":"false",
+                                                "velodyne" :"false",
+                                                "end_effector_left":"dagana",
+                                                "floating_joint":"true"},
+                                            extra_pkg_paths=descriptions)
+```
+
+## Runnable example
+
+`xacro_compile_example.py` compiles kyon's xacro to a urdf, in either mode:
+
+```bash
+python -m pydescriptions.xacro_compile_example
 ```
 
 ## The two modes
@@ -45,15 +74,6 @@ just: call `resolve`, edit the files, rerun.
 | `extra_repos` | repositories absent from the index, `{name: {url, commit\|ref, packages}}` |
 | `allow_download` | False to fail instead of cloning |
 
-## Runnable example
-
-`xacro_compile_example.py` compiles kyon's xacro to a urdf, in either mode:
-
-```bash
-python -m pydescriptions.xacro_compile_example
-python -m pydescriptions.xacro_compile_example --root ~/adarl_ws/src/descriptions
-python -m pydescriptions.xacro_compile_example --root ~/adarl_ws/src/descriptions --ref my-branch
-```
 
 ## Adding a description
 
