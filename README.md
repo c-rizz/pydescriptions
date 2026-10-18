@@ -5,7 +5,7 @@ with a pinned commit for each, clones them on demand, and resolves ROS package n
 to filesystem paths.
 
 It does not require heavy dependencies and is pip-installable.
-For xacro compilation you can use (xacro_standalone)[https://github.com/c-rizz/xacro_standalone/tree/extra_find_pkg_path] and the wrapper provided by (ADARL)[https://github.com/c-rizz/adarl].
+For xacro compilation you can use [xacro_standalone](https://github.com/c-rizz/xacro_standalone/tree/extra_find_pkg_path) and the wrapper provided by [ADARL](https://github.com/c-rizz/adarl).
 
 It is used programmatically; there is no CLI. The result is shaped for the ADARL xacro compiler, which
 takes a `package name -> path` dict:
